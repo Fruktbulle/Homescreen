@@ -1,0 +1,40 @@
+name: Bygg APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['apk/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Bygg debug-APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Kopiera APK till repot
+        run: |
+          mkdir -p apk
+          cp app/build/outputs/apk/debug/app-debug.apk apk/startskarm.apk
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Uppdatera APK"
+          file_pattern: apk/startskarm.apk
